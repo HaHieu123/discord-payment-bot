@@ -7,7 +7,7 @@ const ACCOUNT_NAME = process.env.ACCOUNT_NAME || 'DEMO ACCOUNT';
 
 module.exports.generateQR = async (code, amount) => {
   try {
-    const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
+    const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact.png?amount=${amount}&addInfo=${encodeURIComponent(code)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
     console.log('Generated QR URL:', qrUrl); // Debug
     return { qrImageUrl: qrUrl };
   } catch (error) {
