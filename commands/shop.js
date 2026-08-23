@@ -8,7 +8,7 @@ module.exports = {
     const products = await Product.find().sort({ category: 1, price: 1 });
 
     const embed = new EmbedBuilder()
-      .setTitle('🛒 Berserk AutoBuy APP')
+      .setTitle('🛒 Ha Hieu AutoBuy APP')
       .setDescription('**Hệ Thống Thanh Toán Tự Động 24/7**\nNhấn **Nạp tiền** để nạp thêm số dư\nNhấn **Số dư** để kiểm tra số dư\nNhấn **Hỗ trợ** để tạo ticket')
       .setColor('#FFA500')
       .addFields(
