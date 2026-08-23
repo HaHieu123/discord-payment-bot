@@ -17,7 +17,6 @@ module.exports = async function (interaction) {
 
       // Tạo mã giao dịch
       const code = `NAP_${interaction.user.id}_${Date.now()}`;
-      // Lưu transaction
       await Transaction.create({
         code,
         userId: interaction.user.id,
@@ -40,23 +39,11 @@ module.exports = async function (interaction) {
         .setImage(qrData.qrImageUrl)
         .setColor('#00ccff');
 
-      // 👉 Gửi QR và thông tin vào DM của người dùng
-      try {
-        await interaction.user.send({ embeds: [embed] });
-        // Nếu gửi DM thành công, chỉ thông báo ephemeral trong chat
-        await interaction.reply({
-          content: '✅ Đã gửi mã QR vào tin nhắn riêng (DM). Vui lòng kiểm tra.',
-          flags: MessageFlags.Ephemeral
-        });
-      } catch (dmError) {
-        // Nếu không gửi được DM (người dùng chặn bot hoặc chưa mở DM)
-        console.error('Không thể gửi DM:', dmError);
-        // Fallback: gửi QR ngay trong chat nhưng vẫn ephemeral
-        await interaction.reply({
-          embeds: [embed],
-          flags: MessageFlags.Ephemeral
-        });
-      }
+      // ✅ Gửi QR trực tiếp trong chat (ephemeral) – chỉ mình người dùng thấy
+      await interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral
+      });
 
     } catch (error) {
       console.error('Lỗi trong modalHandler:', error);

@@ -12,34 +12,52 @@ module.exports = async function (interaction) {
 
   const productId = interaction.values[0];
   if (productId === 'no_product') {
-    return await interaction.editReply({
+    // Không có sản phẩm: gửi ephemeral và giữ nguyên shop
+    await interaction.followUp({
       content: 'Hiện tại chưa có sản phẩm nào để mua.',
-      components: []
+      flags: MessageFlags.Ephemeral
     });
+    // Giữ nguyên giao diện shop (render lại)
+    const renderShop = require('../utils/renderShop');
+    const shopData = await renderShop(interaction);
+    await interaction.editReply(shopData);
+    return;
   }
 
   // Tìm sản phẩm
   const product = await Product.findOne({ id: productId });
   if (!product) {
-    return await interaction.editReply({
+    await interaction.followUp({
       content: '❌ Sản phẩm không tồn tại.',
-      components: []
+      flags: MessageFlags.Ephemeral
     });
+    const renderShop = require('../utils/renderShop');
+    const shopData = await renderShop(interaction);
+    await interaction.editReply(shopData);
+    return;
   }
   if (product.stock <= 0) {
-    return await interaction.editReply({
+    await interaction.followUp({
       content: '❌ Sản phẩm đã hết hàng.',
-      components: []
+      flags: MessageFlags.Ephemeral
     });
+    const renderShop = require('../utils/renderShop');
+    const shopData = await renderShop(interaction);
+    await interaction.editReply(shopData);
+    return;
   }
 
   // Kiểm tra số dư
   const user = await User.findOne({ userId: interaction.user.id });
   if (!user || user.balance < product.price) {
-    return await interaction.editReply({
-      content: `❌ Số dư không đủ. Cần ${product.price.toLocaleString()} VNĐ, bạn có ${user?.balance || 0} VNĐ.`,
-      components: []
+    await interaction.followUp({
+      content: `❌ Số dư không đủ. Cần ${product.price.toLocaleString()} VNĐ, bạn có ${user?.balance || 0} VNĐ. Vui lòng nạp thêm tiền.`,
+      flags: MessageFlags.Ephemeral
     });
+    const renderShop = require('../utils/renderShop');
+    const shopData = await renderShop(interaction);
+    await interaction.editReply(shopData);
+    return;
   }
 
   // === Tiến hành mua hàng ===
@@ -54,10 +72,15 @@ module.exports = async function (interaction) {
     { sort: { createdAt: 1 } }
   );
   if (!keyDoc) {
-    return await interaction.editReply({
+    await interaction.followUp({
       content: '❌ Hết key, vui lòng liên hệ Admin.',
-      components: []
+      flags: MessageFlags.Ephemeral
     });
+    // Vẫn giữ nguyên shop (render lại) vì có thể các sản phẩm khác vẫn còn
+    const renderShop = require('../utils/renderShop');
+    const shopData = await renderShop(interaction);
+    await interaction.editReply(shopData);
+    return;
   }
 
   // Gửi key qua DM
@@ -93,10 +116,10 @@ module.exports = async function (interaction) {
         .setStyle(ButtonStyle.Primary)
     );
 
-  // Cập nhật tin nhắn shop gốc (thay vì gửi tin nhắn mới)
+  // Cập nhật tin nhắn shop gốc thành xác nhận thành công
   await interaction.editReply({
     embeds: [embed],
     components: [row],
-    content: null // Xóa nội dung text cũ nếu có
+    content: null
   });
 };
