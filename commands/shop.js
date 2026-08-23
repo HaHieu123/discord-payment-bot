@@ -13,7 +13,6 @@ module.exports = {
       const user = await User.findOne({ userId: interaction.user.id });
       const imagePath = path.resolve('C:', 'Users', 'hieuh', 'Downloads', 'cid.jpg');
 
-      // Embed chính (không có số dư)
       const embed = new EmbedBuilder()
         .setTitle('🛒 HaHieu AutoBuy - Cửa Hàng')
         .setDescription('**Hệ Thống Thanh Toán Tự Động 24/7**\nNhấn **Nạp tiền** để nạp thêm số dư\nNhấn **Số dư** để kiểm tra số dư\nNhấn **Hỗ trợ** để tạo ticket')
@@ -44,7 +43,6 @@ module.exports = {
         .setFooter({ text: 'Nhanh Chóng - Bảo Mật - Uy Tín' })
         .setTimestamp();
 
-      // ------------------- DROPDOWN CHỌN SẢN PHẨM -------------------
       const selectMenu = new StringSelectMenuBuilder()
         .setCustomId('buy_product')
         .setPlaceholder('📦 Chọn gói sản phẩm bạn muốn mua')
@@ -81,10 +79,14 @@ module.exports = {
             .setEmoji('🖥️')
         );
 
-      // Hàng 1: dropdown
       const row1 = new ActionRowBuilder().addComponents(selectMenu);
 
-      // Hàng 2: 3 nút (Nạp tiền, Số dư, Hỗ trợ)
+      // Lấy channel ID từ env
+      const channelId = process.env.TICKET_CHANNEL_ID;
+      if (!channelId) {
+        console.warn('⚠️ Thiếu TICKET_CHANNEL_ID trong .env, nút Hỗ trợ sẽ không hoạt động.');
+      }
+
       const row2 = new ActionRowBuilder()
         .addComponents(
           new ButtonBuilder()
@@ -96,12 +98,15 @@ module.exports = {
             .setLabel('Số Dư')
             .setStyle(ButtonStyle.Success),
           new ButtonBuilder()
-            .setCustomId('ho_tro')          // tương tác, không phải link
-            .setLabel('🎫 Hỗ Trợ')
-            .setStyle(ButtonStyle.Secondary)
+            .setLabel('📞 Hỗ Trợ')   // 👈 ĐÃ ĐỔI ICON THÀNH ĐIỆN THOẠI
+            .setStyle(ButtonStyle.Link)
+            .setURL(
+              channelId
+                ? `https://discord.com/channels/${interaction.guild.id}/${channelId}`
+                : 'https://discord.com'
+            )
         );
 
-      // Reply với 2 hàng (dropdown + buttons)
       await interaction.editReply({
         embeds: [embed],
         components: [row1, row2],

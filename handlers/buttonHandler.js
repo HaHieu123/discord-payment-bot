@@ -30,9 +30,16 @@ module.exports = async function (interaction) {
     return await interaction.editReply({ embeds: [embed] });
   }
 
+  // ✅ Nút Hỗ trợ – hiển thị embed có link đến #tao-ticket
   if (customId === 'ho_tro') {
     await interaction.deferReply({ ephemeral: true });
-    const channelId = 'ID_CHANNEL_TAO_TICKET'; // 👈 THAY BẰNG ID THẬT
+
+    // Lấy ID kênh từ env
+    const channelId = process.env.TICKET_CHANNEL_ID;
+    if (!channelId) {
+      return interaction.editReply({ content: '❌ Kênh hỗ trợ chưa được cấu hình, vui lòng liên hệ Admin.' });
+    }
+
     const link = `https://discord.com/channels/${interaction.guild.id}/${channelId}`;
     const embed = new EmbedBuilder()
       .setTitle('📞 Hỗ trợ khách hàng')
@@ -42,10 +49,12 @@ module.exports = async function (interaction) {
         `🔗 [Nhấn vào đây để đến kênh ticket](${link})`
       )
       .setColor(0x0099FF)
-      .setFooter({ text: 'Nhanh Chóng - Bảo Mật - Uy Tín' });
+      .setFooter({ text: 'Nhanh Chóng - Bảo Mật - Uy Tín' })
+      .setTimestamp();
+
     return await interaction.editReply({ embeds: [embed] });
   }
 
-  // Các nút khác
+  // Fallback
   await interaction.reply({ content: 'Chức năng chưa được hỗ trợ.', ephemeral: true });
 };
