@@ -17,29 +17,49 @@ module.exports = {
       )
       .setFooter({ text: 'Nhanh Chóng - Bảo Mật - Uy Tín' });
 
-    const row = new ActionRowBuilder()
+    // === Hàng 1: Các nút chức năng chính ===
+    const row1 = new ActionRowBuilder()
       .addComponents(
         new ButtonBuilder().setCustomId('deposit').setLabel('Nạp Tiền').setStyle(ButtonStyle.Success),
         new ButtonBuilder().setCustomId('balance').setLabel('Số Dư').setStyle(ButtonStyle.Primary),
         new ButtonBuilder().setCustomId('support').setLabel('Hỗ Trợ').setStyle(ButtonStyle.Secondary)
       );
 
-    // Thêm nút mua hàng cho từng sản phẩm (có thể thêm vào hàng khác)
-    const productRow = new ActionRowBuilder();
+    // === Hàng 2, 3, ...: Nút mua hàng (tối đa 5 nút/hàng) ===
+    const productRows = [];
+    let currentRow = new ActionRowBuilder();
+    let buttonCount = 0;
+
     products.forEach(p => {
       if (p.stock > 0) {
-        productRow.addComponents(
-          new ButtonBuilder()
-            .setCustomId(`buy_${p.id}`)
-            .setLabel(p.name)
-            .setStyle(ButtonStyle.Primary)
-        );
+        const button = new ButtonBuilder()
+          .setCustomId(`buy_${p.id}`)
+          .setLabel(p.name)
+          .setStyle(ButtonStyle.Primary);
+
+        currentRow.addComponents(button);
+        buttonCount++;
+
+        // Nếu đã đủ 5 nút, đẩy row hiện tại vào mảng và tạo row mới
+        if (buttonCount === 5) {
+          productRows.push(currentRow);
+          currentRow = new ActionRowBuilder();
+          buttonCount = 0;
+        }
       }
     });
 
+    // Đẩy row cuối cùng (nếu còn nút) vào mảng
+    if (buttonCount > 0) {
+      productRows.push(currentRow);
+    }
+
+    // Ghép tất cả rows lại: row1 + productRows
+    const components = [row1, ...productRows];
+
     await interaction.reply({
       embeds: [embed],
-      components: [row, productRow]
+      components: components
     });
   }
 };

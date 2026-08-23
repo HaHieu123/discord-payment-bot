@@ -1,19 +1,21 @@
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const paymentService = require('../services/paymentService');
-const { EmbedBuilder } = require('discord.js');
 
 module.exports = async function (interaction) {
   if (!interaction.isModalSubmit()) return;
   if (interaction.customId === 'depositModal') {
     const amount = parseInt(interaction.fields.getTextInputValue('depositAmount'));
     if (isNaN(amount) || amount < 10000) {
-      return await interaction.reply({ content: '⚠️ Số tiền phải là số và tối thiểu 10,000 VNĐ.', ephemeral: true });
+      return await interaction.reply({
+        content: '⚠️ Số tiền phải là số và tối thiểu 10,000 VNĐ.',
+        flags: MessageFlags.Ephemeral
+      });
     }
 
     // Tạo mã giao dịch
     const code = `NAP_${interaction.user.id}_${Date.now()}`;
-    // Lưu transaction
     await Transaction.create({
       code,
       userId: interaction.user.id,
@@ -22,7 +24,7 @@ module.exports = async function (interaction) {
       status: 'pending'
     });
 
-    // Tạo QR thanh toán (dùng VietQR mô phỏng)
+    // Tạo QR (giả lập)
     const qrData = await paymentService.generateQR(code, amount, 'Ngân hàng của bạn', 'STK', 'Tên TK');
 
     const embed = new EmbedBuilder()
@@ -35,6 +37,6 @@ module.exports = async function (interaction) {
       .setImage(qrData.qrImageUrl)
       .setColor('#00ccff');
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   }
 };

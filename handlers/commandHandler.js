@@ -1,4 +1,4 @@
-// handlers/commandHandler.js
+const { MessageFlags } = require('discord.js');
 const User = require('../models/User');
 
 // Danh sách các lệnh
@@ -12,7 +12,7 @@ const commands = {
 module.exports = async function (interaction) {
   const { commandName, user } = interaction;
 
-  // Kiểm tra user trong DB, nếu chưa có thì tạo mới
+  // Tạo user nếu chưa có
   const existingUser = await User.findOne({ userId: user.id });
   if (!existingUser) {
     await User.create({
@@ -30,7 +30,7 @@ module.exports = async function (interaction) {
       console.error(error);
       await interaction.reply({
         content: 'Có lỗi xảy ra khi thực thi lệnh.',
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     }
   }
