@@ -23,7 +23,7 @@ module.exports = async function (interaction) {
     return await interaction.showModal(modal);
   }
 
-  // Nút Số dư (xanh lá)
+  // Nút Số dư
   if (customId === 'so_du') {
     await interaction.deferReply({ ephemeral: true });
     const user = await User.findOne({ userId: interaction.user.id });
@@ -39,16 +39,14 @@ module.exports = async function (interaction) {
   if (customId === 'ho_tro') {
     await interaction.deferReply({ ephemeral: true });
 
-    // Lấy ID server và kênh #tao-ticket (bạn cần thay CHANNEL_ID thực tế)
     const guildId = interaction.guild.id;
-    const channelId = 'CHANNEL_ID_CUA_TAO_TICKET'; // 👈 thay bằng ID thật của kênh
-
-    // Tạo link đến kênh (có thể click)
+    const channelId = 'ID_CHANNEL_TAO_TICKET'; // 👈 Thay bằng ID thật của kênh #tao-ticket
     const ticketLink = `https://discord.com/channels/${guildId}/${channelId}`;
 
     const embed = new EmbedBuilder()
       .setTitle('📞 Hỗ trợ khách hàng')
       .setDescription(
+        `Vui lòng liên hệ **Admin** qua DM hoặc tạo ticket tại kênh **[#tao-ticket](${ticketLink})**.\n\n` +
         `📌 **Admin hỗ trợ:** @kieran2112\n` +
         `🔗 **Hoặc bấm vào đây để đến kênh ticket:** [Nhấn vào đây](${ticketLink})`
       )
@@ -59,13 +57,14 @@ module.exports = async function (interaction) {
     return await interaction.editReply({ embeds: [embed] });
   }
 
-  // Nút mua hàng (buy_...)
+  // Nút mua hàng (nếu bạn vẫn giữ cơ chế nút mua riêng – không cần nữa vì đã dùng dropdown, nhưng giữ lại để tương thích)
   if (customId.startsWith('buy_')) {
-    // ... giữ nguyên logic bạn đã có
-    // (Tôi đã viết ở các phần trước, bạn có thể copy từ file cũ)
+    // ... giữ nguyên logic mua hàng cũ nếu bạn dùng (nhưng hiện tại không cần)
+    // Vì bạn đã chuyển sang dropdown + modal, nên có thể bỏ qua case này hoặc để trống
+    return await interaction.reply({ content: 'Vui lòng sử dụng dropdown để chọn sản phẩm.', ephemeral: true });
   }
 
-  // Nút refresh_shop
+  // Nút "Tiếp tục mua" (refresh_shop) – nếu có
   if (customId === 'refresh_shop') {
     const renderShop = require('../utils/renderShop');
     const shopData = await renderShop(interaction);
