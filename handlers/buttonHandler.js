@@ -1,4 +1,4 @@
-const { EmbedBuilder, MessageFlags } = require('discord.js');
+const { EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Key = require('../models/Key');
@@ -40,21 +40,15 @@ module.exports = async function (interaction) {
     });
   }
 
-  // Nút mua hàng (buy_xxx)
+  // Nút mua hàng (nếu bạn vẫn giữ cơ chế nút mua riêng) – không cần thiết vì đã dùng dropdown, nhưng giữ lại để tương thích
   if (customId.startsWith('buy_')) {
     const productId = customId.replace('buy_', '');
     const product = await Product.findOne({ id: productId });
     if (!product) {
-      return await interaction.reply({
-        content: 'Sản phẩm không tồn tại.',
-        flags: MessageFlags.Ephemeral
-      });
+      return await interaction.reply({ content: 'Sản phẩm không tồn tại.', flags: MessageFlags.Ephemeral });
     }
     if (product.stock <= 0) {
-      return await interaction.reply({
-        content: 'Sản phẩm đã hết hàng.',
-        flags: MessageFlags.Ephemeral
-      });
+      return await interaction.reply({ content: 'Sản phẩm đã hết hàng.', flags: MessageFlags.Ephemeral });
     }
 
     const user = await User.findOne({ userId: interaction.user.id });
@@ -65,7 +59,6 @@ module.exports = async function (interaction) {
       });
     }
 
-    // Trừ tiền, giảm stock, lấy key
     await User.updateOne({ userId: interaction.user.id }, { $inc: { balance: -product.price } });
     await Product.updateOne({ id: productId }, { $inc: { stock: -1 } });
 
@@ -75,25 +68,21 @@ module.exports = async function (interaction) {
       { sort: { createdAt: 1 } }
     );
     if (!keyDoc) {
-      return await interaction.reply({
-        content: '❌ Hết key, vui lòng liên hệ Admin.',
-        flags: MessageFlags.Ephemeral
-      });
+      return await interaction.reply({ content: '❌ Hết key, vui lòng liên hệ Admin.', flags: MessageFlags.Ephemeral });
     }
 
-    // Gửi key qua DM
     try {
       await interaction.user.send(`✅ Bạn đã mua **${product.name}** thành công!\n🔑 Key: \`${keyDoc.key}\``);
     } catch (e) {
-      // Nếu không DM được, trả về công khai (kém an toàn hơn)
-      return await interaction.reply({
-        content: `✅ Mua thành công! Key: ${keyDoc.key}`,
-        flags: MessageFlags.Ephemeral
-      });
+      return await interaction.reply({ content: `✅ Mua thành công! Key: ${keyDoc.key}`, flags: MessageFlags.Ephemeral });
     }
-    await interaction.reply({
-      content: '✅ Mua hàng thành công! Kiểm tra DM nhận key.',
-      flags: MessageFlags.Ephemeral
-    });
+    return await interaction.reply({ content: '✅ Mua hàng thành công! Kiểm tra DM nhận key.', flags: MessageFlags.Ephemeral });
+  }
+
+  // Xử lý nút "Tiếp tục mua" (refresh shop) – nếu bạn đã có
+  if (customId === 'refresh_shop') {
+    const renderShop = require('../utils/renderShop');
+    const shopData = await renderShop(interaction);
+    return await interaction.update(shopData);
   }
 };

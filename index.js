@@ -6,9 +6,12 @@ const connectDB = require('./config/db');
 const commandHandler = require('./handlers/commandHandler');
 const buttonHandler = require('./handlers/buttonHandler');
 const modalHandler = require('./handlers/modalHandler');
+const selectHandler = require('./handlers/selectHandler'); // 👈 thêm dòng này
 const Transaction = require('./models/Transaction');
 const User = require('./models/User');
+
 console.log('Token starts with:', process.env.BOT_TOKEN?.substring(0, 10));
+
 // Kiểm tra biến môi trường
 if (!process.env.BOT_TOKEN) {
   console.error('❌ BOT_TOKEN chưa được set trong .env');
@@ -39,7 +42,6 @@ const commands = [
 client.once('ready', async () => {
   console.log(`🤖 Bot ${client.user.tag} đã sẵn sàng!`);
 
-  // Đăng ký lệnh (toàn cục)
   try {
     await client.application.commands.set(commands);
     console.log('✅ Lệnh Slash đã được đăng ký thành công');
@@ -48,7 +50,7 @@ client.once('ready', async () => {
   }
 });
 
-// Xử lý interaction
+// 🟢 MỘT SỰ KIỆN DUY NHẤT cho tất cả interaction
 client.on('interactionCreate', async interaction => {
   if (interaction.isCommand()) {
     await commandHandler(interaction);
@@ -56,6 +58,8 @@ client.on('interactionCreate', async interaction => {
     await buttonHandler(interaction);
   } else if (interaction.isModalSubmit()) {
     await modalHandler(interaction);
+  } else if (interaction.isStringSelectMenu()) {
+    await selectHandler(interaction); // 👈 xử lý dropdown
   }
 });
 
