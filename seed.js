@@ -1,4 +1,3 @@
-// seed.js
 const mongoose = require('mongoose');
 const Product = require('./models/Product');
 const Key = require('./models/Key');
@@ -19,15 +18,38 @@ async function seed() {
   ];
   await Product.insertMany(products);
 
-  // Tạo key mẫu cho từng sản phẩm (chỉ cho những sản phẩm có stock > 0)
-  const keys = [
-    { productId: 'bypass_1d', key: 'ABCD-1234-EFGH-5678' },
-    { productId: 'bypass_1d', key: 'IJKL-9012-MNOP-3456' },
-    // ... thêm key cho các sản phẩm khác
-  ];
+  // ✅ Tạo key cho từng sản phẩm dựa trên stock (chỉ tạo key nếu stock > 0)
+  const keys = [];
+  for (const p of products) {
+    if (p.stock > 0) {
+      // Tạo số lượng key bằng stock (có thể dùng vòng lặp)
+      for (let i = 0; i < p.stock; i++) {
+        keys.push({
+          productId: p.id,
+          key: generateKey(), // hàm tạo key ngẫu nhiên
+          status: 'available'
+        });
+      }
+    }
+  }
   await Key.insertMany(keys);
 
-  console.log('✅ Seed done');
+  console.log(`✅ Seed done: ${products.length} products, ${keys.length} keys`);
   process.exit(0);
 }
+
+// Hàm tạo key ngẫu nhiên (ví dụ: XXXX-YYYY-ZZZZ-WWWW)
+function generateKey() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const segments = [];
+  for (let i = 0; i < 4; i++) {
+    let seg = '';
+    for (let j = 0; j < 4; j++) {
+      seg += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    segments.push(seg);
+  }
+  return segments.join('-');
+}
+
 seed();
