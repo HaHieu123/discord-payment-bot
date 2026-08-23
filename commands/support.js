@@ -7,7 +7,7 @@ module.exports = {
   async execute(interaction) {
     const embed = new EmbedBuilder()
       .setTitle('🆘 Hỗ Trợ')
-      .setDescription('Liên hệ Admin:\n- Cá nhân: @ADMIN\n- Tạo ticket: nhấn nút bên dưới')
+      .setDescription('Liên hệ Admin:\n- Cá nhân: @kieran2112\n- Tạo ticket: nhấn nút bên dưới')
       .setColor('#ff0000');
     await interaction.reply({ embeds: [embed], ephemeral: true });
   }
