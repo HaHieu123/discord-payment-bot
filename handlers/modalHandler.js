@@ -40,7 +40,24 @@ module.exports = async function (interaction) {
         .setImage(qrData.qrImageUrl)
         .setColor('#00ccff');
 
-      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      // 👉 Gửi QR và thông tin vào DM của người dùng
+      try {
+        await interaction.user.send({ embeds: [embed] });
+        // Nếu gửi DM thành công, chỉ thông báo ephemeral trong chat
+        await interaction.reply({
+          content: '✅ Đã gửi mã QR vào tin nhắn riêng (DM). Vui lòng kiểm tra.',
+          flags: MessageFlags.Ephemeral
+        });
+      } catch (dmError) {
+        // Nếu không gửi được DM (người dùng chặn bot hoặc chưa mở DM)
+        console.error('Không thể gửi DM:', dmError);
+        // Fallback: gửi QR ngay trong chat nhưng vẫn ephemeral
+        await interaction.reply({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral
+        });
+      }
+
     } catch (error) {
       console.error('Lỗi trong modalHandler:', error);
       await interaction.reply({
